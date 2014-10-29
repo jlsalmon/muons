@@ -1,0 +1,19 @@
+Notes
+
+spi (for adc):
+- un-blacklist spi driver in /etc/modprobe.d/raspi-blacklist.conf
+- reboot or modprobe
+
+uart (for gps):
+- remove references to ttyAMA0 in /boot/cmdline.txt
+- stop tty at boot by commenting out relevant line in /etc/inittab
+- reboot
+- install python-serial
+
+i2c (for pressure and temp sensors):
+- un-blacklist i2c driver in /etc/modprobe.d/raspi-blacklist.conf
+- add i2c-dev and i2c-bcm2708 to /etc/modules
+- reboot or modprobe
+- install python-smbus and i2c-tools
+- run 'sudo adduser pi i2c'
+- test with 'sudo i2cdetect -y 1'

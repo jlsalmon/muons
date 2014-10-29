@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ title }}</title>
+</head>
+
+<body>
+<h1>Hello!</h1>
+
+<h2>The date and time on the server is: {{ time }}</h2>
+
+<p>Here is some data:</p>
+
+<div id="container"
+     style="height: 400px; min-width: 310px; max-width: 800px; margin: 0 auto">
+
+     </div>
+
+{% for line in lines %}
+  <p>{{ line }}</p>
+{% endfor %}
+
+</body>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"
+   ></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/heatmap.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+<script src="../static/heatmap.js"></script>
+
+</html>
