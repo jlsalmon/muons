@@ -3,6 +3,8 @@ from __future__ import print_function
 
 from XRootD.client.flags import OpenFlags
 from XRootD import client
+import signal
+import sys
 
 from sensors import adc
 from sensors import gps
@@ -30,6 +32,9 @@ class MuonDetector(gps.GPSListener, adc.EventListener, object):
         self.filesystem = client.FileSystem("root://localhost//tmp")
         self.create_event_file()
 
+        # Register signal handler
+        signal.signal(signal.SIGINT, self.signal_handler)
+
     def run(self):
         """
         Main function that will load all the necessary modules and start
@@ -40,8 +45,9 @@ class MuonDetector(gps.GPSListener, adc.EventListener, object):
         self.gps_module.start()
         self.adc_module.start()
 
-        self.gps_module.join()
-        self.adc_module.join()
+        signal.pause()
+        # self.gps_module.join()
+        # self.adc_module.join()
 
     def on_event(self, data):
         """
@@ -70,6 +76,14 @@ class MuonDetector(gps.GPSListener, adc.EventListener, object):
         if statinfo is None:
             with client.File() as f:
                 f.open("root://localhost//tmp/event.txt", OpenFlags.NEW)
+
+    def signal_handler(self, signal, frame):
+        """
+        Called when the process receives SIGINT
+        """
+        self.log.info('Received Ctrl-C')
+        self.adc_module.cleanup()
+        sys.exit(0)
 
 
 class Event(object):
