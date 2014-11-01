@@ -45,9 +45,8 @@ class MuonDetector(gps.GPSListener, adc.EventListener, object):
         self.gps_module.start()
         self.adc_module.start()
 
+        # Wait until the process is killed
         signal.pause()
-        # self.gps_module.join()
-        # self.adc_module.join()
 
     def on_event(self, data):
         """

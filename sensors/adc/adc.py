@@ -26,6 +26,7 @@ class ADC(threading.Thread):
     """
     def __init__(self, channel, listener):
         super(ADC, self).__init__()
+        self.daemon = True
 
         self.channel = channel
         self.listener = listener
@@ -49,6 +50,11 @@ class ADC(threading.Thread):
         GPIO.setmode(GPIO.BOARD)
         # Set up falling edge detection on the trigger pin
         GPIO.setup(self.TRIGGER, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    def run(self):
+        """
+        Called when the thread is started.
+        """
         GPIO.add_event_detect(self.TRIGGER, GPIO.FALLING,
                               callback=self.on_trigger,
                               bouncetime=20)
@@ -69,6 +75,7 @@ class ADC(threading.Thread):
         self.listener.on_event(response)
 
     def cleanup(self):
+        log.info('Cleaning up GPIO')
         GPIO.cleanup()
 
 

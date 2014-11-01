@@ -20,6 +20,7 @@ class GPS(threading.Thread):
     def __init__(self, listener):
         log.info('Initialising GPS')
         super(GPS, self).__init__()
+        self.daemon = True
 
         self.serial_port = serial.Serial("/dev/ttyAMA0", 9600, timeout=2)
 
