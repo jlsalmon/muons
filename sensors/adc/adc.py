@@ -1,8 +1,9 @@
+# coding=utf-8
 from abc import abstractmethod
-import random
 import sys
 import threading
 from time import time
+from sensors.counter import Counter
 from spidev import spidev
 from util.logger import Logger
 
@@ -24,15 +25,19 @@ class ADC(threading.Thread):
     """
     Helper class used to read data from a single ADC chip in a separate thread.
     """
-    def __init__(self, channel, listener):
+
+    def __init__(self, listener):
         super(ADC, self).__init__()
         self.daemon = True
 
-        self.channel = channel
         self.listener = listener
 
         # GPIO trigger interrupt pin
-        self.TRIGGER = 22
+        self.TRIGGER = 25
+        self.CLOCK = 11
+        self.INPUT = 9
+        self.EN0 = 8
+        self.EN1 = 7
 
         # Set up SPI interface
         self.init_spi()
@@ -40,16 +45,33 @@ class ADC(threading.Thread):
         # Set up GPIO interrupt
         self.init_gpio()
 
+        # Set up quadrature encoder counter
+        self.init_counter()
+
     def init_spi(self):
         log.info('Initialising SPI interface')
-        self.spi = spidev.SpiDev()
-        self.spi.open(0, self.channel)
+        # self.spi = spidev.SpiDev()
+        #
+        # # Open both channels
+        # self.spi.open(0, 0)
+        # self.spi.open(0, 1)
+        #
+        # # Set speed to 50MHz
+        # self.spi.max_speed_hz = 50000000
 
     def init_gpio(self):
         log.info('Initialising GPIO trigger')
-        GPIO.setmode(GPIO.BOARD)
+        GPIO.setmode(GPIO.BCM)
         # Set up falling edge detection on the trigger pin
-        GPIO.setup(self.TRIGGER, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.TRIGGER, GPIO.IN)
+
+        GPIO.setup(self.CLOCK, GPIO.OUT, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.INPUT, GPIO.IN)
+        GPIO.setup(self.EN0, GPIO.OUT, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.EN1, GPIO.OUT, pull_up_down=GPIO.PUD_UP)
+
+    def init_counter(self):
+        self.counter = Counter()
 
     def run(self):
         """
@@ -65,14 +87,42 @@ class ADC(threading.Thread):
         the sensor.
         """
         start = time()
-        # Read/write some dummy data for now
-        response = self.spi.xfer2([random.randint(0, 35),
-                                   random.randint(0, 35)])
+
+        # Select channel 1
+        GPIO.output(self.EN0, GPIO.LOW)
+
+        data = list()
+        for i in range(12):
+            # Pull clock down
+            GPIO.output(self.CLOCK, GPIO.LOW)
+            # Read a bit
+            bit = GPIO.input(self.INPUT)
+            GPIO.output(self.CLOCK, GPIO.HIGH)
+            data.append(bit)
+
+        # Select channel 2
+        GPIO.output(self.EN0, GPIO.HIGH)
+        GPIO.output(self.EN1, GPIO.LOW)
+
+        for i in range(12):
+            # Pull clock down
+            GPIO.output(self.CLOCK, GPIO.LOW)
+            # Read a bit
+            bit = GPIO.input(self.INPUT)
+            GPIO.output(self.CLOCK, GPIO.HIGH)
+            data.append(bit)
+
+        GPIO.output(self.EN1, GPIO.HIGH)
+
         end = time()
-        log.debug("Read event data in " + str((end - start) * 1000) + "ms")
+        log.debug("Read event data in " + str((end - start) * 1000000) + "µs")
+        print 'channel 1:', data[:12], '\t\tchannel 2:', data[12:]
+
+        # Read the timestamp from the counter
+        timestamp = self.counter.read()
 
         # Invoke the callback listener
-        self.listener.on_event(response)
+        self.listener.on_event(data, timestamp)
 
     def cleanup(self):
         log.info('Cleaning up GPIO')
@@ -86,7 +136,7 @@ class EventListener(object):
     """
 
     @abstractmethod
-    def on_event(self, event):
+    def on_event(self, event, timestamp):
         """
         Called when an incoming detection event occurs.
         """

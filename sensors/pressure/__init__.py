@@ -1,1 +1,1 @@
-__author__ = 'jsalmon'
+from pressure import PressureSensor
