@@ -1,5 +1,5 @@
 # from XRootD import client
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for, send_from_directory
 from datetime import datetime
 # import pygal
 # from pygal.style import LightSolarizedStyle
@@ -33,7 +33,6 @@ def home():
 
     data = list()
     with open('test/test.txt', 'r') as f:
-
         bits = f.readline().split()
         previous = datetime.fromtimestamp(int(bits[0]) / 1e9)
         energy = ((int(bits[2]) + int(bits[4])) / 2) * 0.2
@@ -65,6 +64,21 @@ def home():
     }
 
     return render_template('main.html', **templateData)
+
+
+@app.route("/ol3")
+def ol3_test():
+    templateData = {
+        'title': 'ol3 test'
+    }
+
+    return render_template('map.html', **templateData)
+
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 
 if __name__ == "__main__":
