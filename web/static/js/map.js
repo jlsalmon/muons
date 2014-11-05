@@ -1,6 +1,3 @@
-//var fromProjection = new ol.Projection("EPSG:4326");   // Transform from WGS 1984
-//var toProjection = new ol.Projection("EPSG:900913"); // to Spherical Mercator Projection
-//var position = new ol.LonLat(13.41, 52.52);//.transform(fromProjection, toProjection);
 
 var delay = 0;
 var map;
@@ -32,65 +29,6 @@ function show_map() {
         })
     });
 
-    var pos = ol.proj.transform([6.055279, 46.232991], 'EPSG:4326', 'EPSG:3857');
-
-    var featurecollection = {
-        "type": "FeatureCollection",
-        "features": [
-            {"geometry": {
-                "type": "GeometryCollection",
-                "geometries": [
-                    {
-                        "type": "LineString",
-                        "coordinates": [
-                            [11.0878902207, 45.1602390564],
-                            [15.01953125, 48.1298828125]
-                        ]
-                    },
-                    {
-                        "type": "Polygon",
-                        "coordinates": [
-                            [
-                                [11.0878902207, 45.1602390564],
-                                [14.931640625, 40.9228515625],
-                                [0.8251953125, 41.0986328125],
-                                [7.63671875, 48.96484375],
-                                [11.0878902207, 45.1602390564]
-                            ]
-                        ]
-                    },
-                    {
-                        "type": "Point",
-                        "coordinates": [15.87646484375, 44.1748046875]
-                    }
-                ]
-            },
-                "type": "Feature",
-                "properties": {}}
-        ]
-    };
-
-    var feature = new ol.Feature({
-        geometry: new ol.geom.Point([6.056279, 46.235991]),
-        name: 'My Polygon'
-    });
-
-    feature.setStyle(new ol.style.Circle({
-        radius: 50,
-        fill: new ol.style.Fill({
-            color: 'rgba(255, 153, 0, 0.4)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: 'rgba(255, 204, 0, 0.2)',
-            width: 1
-        })
-    }));
-
-    map.addLayer(new ol.layer.Vector({
-        source: new ol.source.Vector({
-            features: feature
-        })
-    }));
     map.render();
 }
 
